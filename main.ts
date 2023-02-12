@@ -74,7 +74,7 @@ const launch_opt = {
 const tables = dom.getElementsByTagName("table");
 const browser = await puppeteer.launch(launch_opt);
 const page = await browser.newPage();
-
+await page.emulate(puppeteer.devices["iPhone SE"]);
 for (const table of tables) {
   for (const link of table.getElementsByTagName("a")) {
     try {
