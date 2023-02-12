@@ -2,6 +2,7 @@ import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.34-alpha/deno-dom-w
 import ky from "https://cdn.skypack.dev/ky@0.28.5?dts";
 import puppeteer, { Page } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
 import { Logger } from "./logger.ts";
+import "https://deno.land/x/dotenv/load.ts";
 
 const html = await ky("https://rakucoin.appspot.com/rakuten/kuji/").text();
 const dom = new DOMParser().parseFromString(html, "text/html");
@@ -13,6 +14,9 @@ if (!dom) {
 const rakuten_mail: string = Deno.env.get("RAKUTEN_MAIL")!;
 const rakuten_pass: string = Deno.env.get("RAKUTEN_PASS")!;
 
+if (rakuten_pass == undefined || rakuten_pass == undefined) {
+  Logger.error("init error");
+}
 async function playLot(page: Page, link = "") {
   Logger.info("game->", link);
   await page.goto(link);
@@ -68,7 +72,6 @@ async function playLot(page: Page, link = "") {
   return;
 }
 const launch_opt = {
-  headless: false, // フルバージョンのChromeを使用
   channel: "chrome",
   args: ["--lang=ja,en-US,en"], // デフォルトでは言語設定が英語なので日本語に変更
 };
