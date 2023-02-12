@@ -1,7 +1,7 @@
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.34-alpha/deno-dom-wasm.ts";
 import ky from "https://cdn.skypack.dev/ky@0.28.5?dts";
 import puppeteer, { Page } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
-import "https://deno.land/x/dotenv/load.ts";
+import { Logger } from "./logger.ts";
 
 const html = await ky("https://rakucoin.appspot.com/rakuten/kuji/").text();
 const dom = new DOMParser().parseFromString(html, "text/html");
@@ -14,24 +14,24 @@ const rakuten_mail: string = Deno.env.get("RAKUTEN_MAIL")!;
 const rakuten_pass: string = Deno.env.get("RAKUTEN_PASS")!;
 
 async function playLot(page: Page, link = "") {
-  console.log("game->", link);
+  Logger.info("game->", link);
   await page.goto(link);
   if (/grp0\d\.id/.test(page.url())) {
-    console.log("sign in...");
+    Logger.info("sign in...");
     await page
       .waitForSelector("#loginInner_u", {
         visible: true,
         timeout: 5000,
       })
       .then(async () => {
-        console.log("login");
+        Logger.info("login");
         await page.type("#loginInner_u", rakuten_mail);
         await page.type("#loginInner_p", rakuten_pass);
         const btn = await page.$x('//input[contains(@type, "submit")]');
         await btn[0].click();
       })
       .catch(async () => {
-        console.log("try");
+        Logger.info("try");
         await page.type("#username", rakuten_mail);
         await page.type("#password", rakuten_pass);
         await page.click('button[type="submit"]');
@@ -42,7 +42,7 @@ async function playLot(page: Page, link = "") {
     timeout: 5000,
   });
   if (page.url().endsWith("already")) {
-    console.log("already played");
+    Logger.info("already played");
     return;
   }
 
@@ -51,23 +51,24 @@ async function playLot(page: Page, link = "") {
     timeout: 10000,
   });
 
-  console.log("playing");
+  Logger.info("playing");
   const entry = await page.$("#entry");
   if (entry != null) {
-    console.log("entry");
+    Logger.info("entry");
     try {
       await entry.click();
     } catch (e) {
-      console.log(e);
+      Logger.info(e);
     }
   }
 
-  console.log("wait... ");
+  Logger.info("wait... ");
   await page.waitForTimeout(16000);
-  console.log("play finished");
+  Logger.info("play finished");
   return;
 }
 const launch_opt = {
+  headless: false, // フルバージョンのChromeを使用
   channel: "chrome",
   args: ["--lang=ja,en-US,en"], // デフォルトでは言語設定が英語なので日本語に変更
 };
@@ -80,8 +81,8 @@ for (const table of tables) {
     try {
       await playLot(page, link.getAttribute("href") || "");
     } catch (e) {
-      console.log("------------------exception");
-      console.log(e);
+      Logger.info("------------------exception");
+      Logger.info(e);
     }
   }
 }
