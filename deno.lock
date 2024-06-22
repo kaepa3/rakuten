@@ -1,5 +1,8 @@
 {
-  "version": "2",
+  "version": "3",
+  "redirects": {
+    "https://deno.land/x/dotenv/load.ts": "https://deno.land/x/dotenv@v3.2.0/load.ts"
+  },
   "remote": {
     "https://cdn.skypack.dev/-/ky@v0.28.5-fTmsPaQF9Ic95NIPft8n/dist=es2019,mode=imports/optimized/ky.js": "73b6f2464fc7cc1732ee4928e8bcc183a3247b8d81604a44ee3993534fc2f7f0",
     "https://cdn.skypack.dev/-/ky@v0.28.5-fTmsPaQF9Ic95NIPft8n/dist=es2019,mode=types/distribution/core/constants.d.ts": "b2d944d02597ce496eea3428c57ad46e9a618bf951c5ce318b877a8f6be4950f",

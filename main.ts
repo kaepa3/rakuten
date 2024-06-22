@@ -17,28 +17,55 @@ const rakuten_pass: string = Deno.env.get("RAKUTEN_PASS")!;
 if (rakuten_pass == undefined || rakuten_pass == undefined) {
   Logger.error("init error");
 }
+// 待機
+function wait(second: number) {
+  return new Promise((resolve) => setTimeout(resolve, 1000 * second));
+}
+
+async function clickNextButton(page: Page, selector: string) {
+  const parentB = await page.$(selector);
+  if (parentB == null) {
+    return "parentB-search error";
+  }
+  const btn = await parentB.$(".font-size-16");
+  if (btn == null) {
+    return "btn-search error";
+  }
+  await btn.click();
+  return undefined;
+}
+
+// ゲームの開始
 async function playLot(page: Page, link = "") {
-  Logger.info("game->", link);
+  Logger.info("game->" + page.url(), link);
   await page.goto(link);
-  if (/grp0\d\.id/.test(page.url())) {
+  if (/login.account.rakuten.com\/sso\/authorize/.test(page.url())) {
     Logger.info("sign in...");
     await page
-      .waitForSelector("#loginInner_u", {
+      .waitForSelector("#user_id", {
         visible: true,
         timeout: 5000,
       })
       .then(async () => {
         Logger.info("login");
-        await page.type("#loginInner_u", rakuten_mail);
-        await page.type("#loginInner_p", rakuten_pass);
-        const btn = await page.$x('//input[contains(@type, "submit")]');
-        await btn[0].click();
+        await page.type("#user_id", rakuten_mail);
+        const err = await clickNextButton(page, "#cta001");
+        if (err != undefined) {
+          Logger.info(err);
+        } else {
+          await page.waitForSelector("#cta011", {
+            visible: true,
+            timeout: 5000,
+          }).then(async () => {
+            Logger.info("password");
+            await page.type("#password_current", rakuten_pass);
+            await clickNextButton(page, "#cta011");
+          });
+        }
       })
       .catch(async () => {
-        Logger.info("try");
-        await page.type("#username", rakuten_mail);
-        await page.type("#password", rakuten_pass);
-        await page.click('button[type="submit"]');
+        Logger.info("error");
+        await wait(5);
       });
   }
   await page.waitForSelector("body", {
@@ -71,9 +98,11 @@ async function playLot(page: Page, link = "") {
   Logger.info("play finished");
   return;
 }
+// main処理
 const launch_opt = {
   channel: "chrome",
   args: ["--lang=ja,en-US,en"], // デフォルトでは言語設定が英語なので日本語に変更
+  headless: false,
 };
 const tables = dom.getElementsByTagName("table");
 const browser = await puppeteer.launch(launch_opt);
@@ -84,7 +113,7 @@ for (const table of tables) {
     try {
       await playLot(page, link.getAttribute("href") || "");
     } catch (e) {
-      Logger.info("------------------exception");
+      Logger.info("exception:" + page.url());
       Logger.info(e);
     }
   }
