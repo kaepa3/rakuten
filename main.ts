@@ -102,7 +102,7 @@ async function playLot(page: Page, link = "") {
 const launch_opt = {
   channel: "chrome",
   args: ["--lang=ja,en-US,en"], // デフォルトでは言語設定が英語なので日本語に変更
-  headless: false,
+  headless: true,
 };
 const tables = dom.getElementsByTagName("table");
 const browser = await puppeteer.launch(launch_opt);
