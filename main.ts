@@ -60,6 +60,27 @@ async function playLot(page: Page, link = "") {
             Logger.info("password");
             await page.type("#password_current", rakuten_pass);
             await clickNextButton(page, "#cta011");
+            // 2段階認証
+            await page.waitForSelector("body", {
+              visible: true,
+              timeout: 5000,
+            });
+
+            Logger.info("osuyo");
+            page.waitForSelector("#seco_473", {
+              visible: true,
+              timeout: 5000,
+            }).then(async () => {
+              Logger.info("sagasu");
+              const val = await page.$("#seco_473");
+              if (val != null) {
+                Logger.info("osuyo");
+                await val.click();
+                Logger.info("yaruyo");
+              }
+            }).catch(() => {
+              Logger.info("not find ok");
+            });
           });
         }
       })
@@ -68,6 +89,7 @@ async function playLot(page: Page, link = "") {
         await wait(5);
       });
   }
+
   await page.waitForSelector("body", {
     visible: true,
     timeout: 5000,
@@ -102,7 +124,7 @@ async function playLot(page: Page, link = "") {
 const launch_opt = {
   channel: "chrome",
   args: ["--lang=ja,en-US,en"], // デフォルトでは言語設定が英語なので日本語に変更
-  headless: true,
+  headless: false,
 };
 const tables = dom.getElementsByTagName("table");
 const browser = await puppeteer.launch(launch_opt);
